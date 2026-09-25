@@ -1,4 +1,4 @@
-import type { AuthCredentials, GetStateResponse, ReceiveNotificationResponse, SendMessageRequest, SendMessageResponse } from '../types/api';
+import type { AuthCredentials, CheckAccountResponse, GetStateResponse, ReceiveNotificationResponse, SendMessageRequest, SendMessageResponse } from '../types/api';
 
 export const getStateInstance = async (
     credentials: AuthCredentials
@@ -90,4 +90,28 @@ export const deleteNotification = async (
     if (!response.ok) {
         console.warn(`Не удалось удалить уведомление ${receiptId}`);
     }
+};
+
+export const checkAccount = async (
+    credentials: AuthCredentials,
+    phoneNumber: number
+): Promise<CheckAccountResponse> => {
+    const { apiUrl, idInstance, apiTokenInstance } = credentials;
+    const cleanUrl = apiUrl.replace(/\/$/, '');
+    const url = `${cleanUrl}/waInstance${idInstance}/checkAccount/${apiTokenInstance}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Ошибка проверки аккаунта: ${response.status}`);
+    }
+
+    return response.json();
 };

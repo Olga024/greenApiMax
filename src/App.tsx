@@ -3,19 +3,6 @@ import { LoginForm } from './components/LoginForm';
 import { useAuthStore } from './store/authStore';
 import { ChatWindow } from './components/ChatWindow';
 
-// Заглушка для будущего чата
-/*const ChatPlaceholder = () => {
-  const logout = useAuthStore((state) => state.logout);
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Чат</h1>
-      <button onClick={logout} className="mt-4 text-red-500 underline">
-        Выйти
-      </button>
-    </div>
-  );
-};*/
-
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   return isAuthenticated ? children : <Navigate to="/login" replace />;
