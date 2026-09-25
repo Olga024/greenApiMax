@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './components/LoginForm';
 import { useAuthStore } from './store/authStore';
+import { ChatWindow } from './components/ChatWindow';
 
 // Заглушка для будущего чата
-const ChatPlaceholder = () => {
+/*const ChatPlaceholder = () => {
   const logout = useAuthStore((state) => state.logout);
   return (
     <div className="p-8">
@@ -13,7 +14,7 @@ const ChatPlaceholder = () => {
       </button>
     </div>
   );
-};
+};*/
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -29,7 +30,7 @@ function App() {
           path="/chat"
           element={
             <ProtectedRoute>
-              <ChatPlaceholder />
+              <ChatWindow />
             </ProtectedRoute>
           }
         />

@@ -1,4 +1,4 @@
-import type { AuthCredentials, GetStateResponse } from '../types/api';
+import type { AuthCredentials, GetStateResponse, SendMessageRequest, SendMessageResponse } from '../types/api';
 
 export const getStateInstance = async (
     credentials: AuthCredentials
@@ -21,6 +21,30 @@ export const getStateInstance = async (
             throw new Error('Неверный API токен или ID инстанса');
         }
         throw new Error(`Ошибка сервера: ${response.status}`);
+    }
+
+    return response.json();
+};
+
+export const sendMessage = async (
+    credentials: AuthCredentials,
+    data: SendMessageRequest
+): Promise<SendMessageResponse> => {
+    const { apiUrl, idInstance, apiTokenInstance } = credentials;
+    const cleanUrl = apiUrl.replace(/\/$/, '');
+    const url = `${cleanUrl}/waInstance${idInstance}/sendMessage/${apiTokenInstance}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Ошибка отправки: ${response.status}`);
     }
 
     return response.json();

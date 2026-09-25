@@ -8,7 +8,7 @@ export const LoginForm = () => {
     const setCredentials = useAuthStore((state) => state.setCredentials);
 
     const [formData, setFormData] = useState({
-        apiUrl: 'https://api.green-api.com',
+        apiUrl: 'https://3100.api.green-api.com',
         idInstance: '',
         apiTokenInstance: '',
     });
