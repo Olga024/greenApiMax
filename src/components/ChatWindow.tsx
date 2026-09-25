@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
 import { sendMessage } from '../api/greenApi';
+import { usePolling } from '../hooks/usePolling';
 
 export const ChatWindow = () => {
     const credentials = useAuthStore((state) => state.credentials)!;
@@ -49,6 +50,8 @@ export const ChatWindow = () => {
             setMessageText(text); // Возвращаем текст обратно в инпут
         }
     };
+
+    usePolling();
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -98,8 +101,8 @@ export const ChatWindow = () => {
                                 <div
                                     key={msg.id}
                                     className={`max-w-[70%] p-3 rounded-lg ${msg.isOutgoing
-                                            ? 'bg-green-500 text-white self-end'
-                                            : 'bg-white self-start'
+                                        ? 'bg-green-500 text-white self-end'
+                                        : 'bg-white self-start'
                                         }`}
                                 >
                                     {msg.text}
