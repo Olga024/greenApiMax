@@ -33,7 +33,7 @@ export const LoginForm = () => {
         setIsLoading(true);
 
         if (formData.apiTokenInstance.length < 30) {
-            setError('Неверный API токен. Проверьте API токен личном кабинете GREEN-API');
+            setError('Токен выглядит слишком коротким');
             setIsLoading(false);
             return;
         }
@@ -61,8 +61,9 @@ export const LoginForm = () => {
                 )}
 
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-gray-700">API URL</label>
+                    <label htmlFor="apiUrl" className="block mb-1 text-sm font-medium text-gray-700">API URL</label>
                     <input
+                        id="apiUrl"
                         type="text"
                         name="apiUrl"
                         value={formData.apiUrl}
@@ -73,8 +74,9 @@ export const LoginForm = () => {
                 </div>
 
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-gray-700">ID Instance</label>
+                    <label htmlFor="idInstance" className="block mb-1 text-sm font-medium text-gray-700">ID Instance</label>
                     <input
+                        id="idInstance"
                         type="text"
                         inputMode="numeric"
                         name="idInstance"
@@ -87,8 +89,9 @@ export const LoginForm = () => {
                 </div>
 
                 <div className="mb-6">
-                    <label className="block mb-1 text-sm font-medium text-gray-700">API Token Instance</label>
+                    <label htmlFor="apiTokenInstance" className="block mb-1 text-sm font-medium text-gray-700">API Token Instance</label>
                     <input
+                        id="apiTokenInstance"
                         type="password"
                         name="apiTokenInstance"
                         value={formData.apiTokenInstance}
