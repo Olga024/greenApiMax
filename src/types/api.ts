@@ -45,7 +45,7 @@ export type ReceiveNotificationResponse = {
 } | null;
 
 export type CheckAccountResponse = {
-  exist: boolean;
-  chatId: string;
-  fromCache: boolean;
+    exist: boolean;
+    chatId: string;
+    fromCache: boolean;
 };

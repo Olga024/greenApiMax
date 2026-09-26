@@ -32,18 +32,26 @@ export const usePolling = () => {
                         const chatId = body.senderData.chatId;
                         const messageText = body.messageData?.textMessageData?.textMessage;
                         const senderName = body.senderData.senderName || chatId;
+                        const messageId = body.idMessage || Date.now().toString();
 
                         if (messageText) {
-                            if (!chatsRef.current[chatId]) {
-                                addChat(chatId, senderName);
-                            }
+                            const existingChat = chatsRef.current[chatId];
+                            const isDuplicate = existingChat?.messages.some(
+                                (msg) => msg.id === messageId
+                            );
 
-                            addMessage(chatId, {
-                                id: body.idMessage || Date.now().toString(),
-                                text: messageText,
-                                isOutgoing: false,
-                                timestamp: body.timestamp * 1000,
-                            });
+                            if (!isDuplicate) {
+                                if (!existingChat) {
+                                    addChat(chatId, senderName);
+                                }
+
+                                addMessage(chatId, {
+                                    id: messageId,
+                                    text: messageText,
+                                    isOutgoing: false,
+                                    timestamp: body.timestamp * 1000,
+                                });
+                            }
                         }
                     }
 

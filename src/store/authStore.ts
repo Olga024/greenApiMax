@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>()(
             logout: () => set({ credentials: null, isAuthenticated: false }),
         }),
         {
-            name: 'green-api-auth', // ключ в localStorage
+            name: 'green-api-auth',
         }
     )
 );

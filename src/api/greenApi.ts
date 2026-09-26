@@ -1,29 +1,28 @@
 import type { AuthCredentials, CheckAccountResponse, GetStateResponse, ReceiveNotificationResponse, SendMessageRequest, SendMessageResponse } from '../types/api';
 
-export const getStateInstance = async (
-    credentials: AuthCredentials
-): Promise<GetStateResponse> => {
-    const { apiUrl, idInstance, apiTokenInstance } = credentials;
+const fetchWithErrorHandling = async (url: string, options: RequestInit) => {
+    try {
+        const response = await fetch(url, options);
 
-    // Убираем лишние слэши на стыке
-    const cleanUrl = apiUrl.replace(/\/$/, '');
-    const url = `${cleanUrl}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        if (response.status === 401) {
-            throw new Error('Неверный API токен или ID инстанса');
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                throw new Error('Неверный API токен или ID инстанса. Проверьте данные в личном кабинете GREEN-API');
+            }
+            if (response.status === 466) {
+                throw new Error('Превышен лимит тарифа "Разработчик". Смените тариф в личном кабинете GREEN-API');
+            }
+            if (response.status === 404) {
+                throw new Error('Неверный API URL. Проверьте адрес в личном кабинете GREEN-API');
+            }
+            throw new Error(`Ошибка сервера: ${response.status}`);
         }
-        throw new Error(`Ошибка сервера: ${response.status}`);
+        return response;
+    } catch (error) {
+        if (error instanceof TypeError) {
+            throw new Error('Не удалось подключиться к серверу. Проверьте правильность API URL и ваше интернет-соединение');
+        }
+        throw error;
     }
-
-    return response.json();
 };
 
 export const sendMessage = async (
@@ -34,18 +33,11 @@ export const sendMessage = async (
     const cleanUrl = apiUrl.replace(/\/$/, '');
     const url = `${cleanUrl}/waInstance${idInstance}/sendMessage/${apiTokenInstance}`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithErrorHandling(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(data),
     });
-
-    if (!response.ok) {
-        throw new Error(`Ошибка отправки: ${response.status}`);
-    }
 
     return response.json();
 };
@@ -55,10 +47,9 @@ export const receiveNotification = async (
 ): Promise<ReceiveNotificationResponse> => {
     const { apiUrl, idInstance, apiTokenInstance } = credentials;
     const cleanUrl = apiUrl.replace(/\/$/, '');
-    // receiveTimeout=5 означает, что сервер подержит соединение до 5 секунд, если уведомлений нет (long polling)
     const url = `${cleanUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}?receiveTimeout=5`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithErrorHandling(url, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
     });
@@ -67,7 +58,6 @@ export const receiveNotification = async (
         throw new Error(`Ошибка получения уведомления: ${response.status}`);
     }
 
-    // Если уведомлений нет, API возвращает пустой ответ или null, что соответствует типу ReceiveNotificationResponse
     const text = await response.text();
     if (!text || text === 'null') return null;
 
@@ -82,7 +72,7 @@ export const deleteNotification = async (
     const cleanUrl = apiUrl.replace(/\/$/, '');
     const url = `${cleanUrl}/waInstance${idInstance}/deleteNotification/${apiTokenInstance}/${receiptId}`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithErrorHandling(url, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' },
     });
@@ -100,7 +90,7 @@ export const checkAccount = async (
     const cleanUrl = apiUrl.replace(/\/$/, '');
     const url = `${cleanUrl}/waInstance${idInstance}/checkAccount/${apiTokenInstance}`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithErrorHandling(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -112,6 +102,21 @@ export const checkAccount = async (
     if (!response.ok) {
         throw new Error(`Ошибка проверки аккаунта: ${response.status}`);
     }
+
+    return response.json();
+};
+
+export const getStateInstance = async (
+    credentials: AuthCredentials
+): Promise<GetStateResponse> => {
+    const { apiUrl, idInstance, apiTokenInstance } = credentials;
+    const cleanUrl = apiUrl.replace(/\/$/, '');
+    const url = `${cleanUrl}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
+
+    const response = await fetchWithErrorHandling(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+    });
 
     return response.json();
 };

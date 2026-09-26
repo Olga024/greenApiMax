@@ -16,23 +16,34 @@ export const LoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setError(null);
+
+        if (name === 'idInstance') {
+            const numericValue = value.replace(/\D/g, '');
+            setFormData({ ...formData, [name]: numericValue });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
 
-        try {
-            // Проверяем валидность ключей
-            await getStateInstance(formData);
+        if (formData.apiTokenInstance.length < 30) {
+            setError('Неверный API токен. Проверьте API токен личном кабинете GREEN-API');
+            setIsLoading(false);
+            return;
+        }
 
-            // Если всё ок, сохраняем в стейт и переходим в чат
+        try {
+            await getStateInstance(formData);
             setCredentials(formData);
             navigate('/chat');
         } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при подключении');
+            setError(err.message || 'Произошла неизвестная ошибка при подключении');
         } finally {
             setIsLoading(false);
         }
@@ -44,55 +55,54 @@ export const LoginForm = () => {
                 <h1 className="mb-6 text-2xl font-bold text-center">Вход в GREEN-API</h1>
 
                 {error && (
-                    <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded">
+                    <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded border border-red-200">
                         {error}
                     </div>
                 )}
 
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium">API URL</label>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">API URL</label>
                     <input
                         type="text"
                         name="apiUrl"
                         value={formData.apiUrl}
                         onChange={handleChange}
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none"
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
                         required
                     />
                 </div>
 
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium">ID Instance</label>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">ID Instance</label>
                     <input
                         type="text"
+                        inputMode="numeric"
                         name="idInstance"
                         value={formData.idInstance}
                         onChange={handleChange}
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none"
-                        placeholder="Например: 1101"
-                        autoComplete="off"
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
                         required
+                        autoComplete='off'
                     />
                 </div>
 
                 <div className="mb-6">
-                    <label className="block mb-1 text-sm font-medium">API Token Instance</label>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">API Token Instance</label>
                     <input
                         type="password"
                         name="apiTokenInstance"
                         value={formData.apiTokenInstance}
                         onChange={handleChange}
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none"
-                        placeholder="Ваш токен"
-                        autoComplete="current-password"
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
                         required
+                        autoComplete='off'
                     />
                 </div>
 
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-2 text-white bg-green-600 rounded hover:bg-green-700 disabled:bg-green-300 transition-colors"
+                    className="w-full py-2 text-white bg-green-600 rounded hover:bg-green-700 disabled:bg-green-300 transition-colors font-bold"
                 >
                     {isLoading ? 'Проверка...' : 'Войти'}
                 </button>
