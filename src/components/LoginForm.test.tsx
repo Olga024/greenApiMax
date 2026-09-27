@@ -4,10 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { LoginForm } from './LoginForm';
 import * as greenApi from '../api/greenApi';
 
-// Мокаем весь модуль greenApi
 vi.mock('../api/greenApi');
 
-// Мокаем useNavigate из react-router-dom, чтобы проверять редирект
 const mockedNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
@@ -22,7 +20,6 @@ describe('LoginForm', () => {
         vi.clearAllMocks();
     });
 
-    // Хелпер для рендера в обёртке Router
     const renderForm = () =>
         render(
             <BrowserRouter>
@@ -45,7 +42,6 @@ describe('LoginForm', () => {
 
         fireEvent.change(idInput, { target: { value: 'ab12cd34' } });
 
-        // Ожидаем, что буквы убрались
         expect(idInput.value).toBe('1234');
     });
 
@@ -56,7 +52,7 @@ describe('LoginForm', () => {
             target: { value: '1101' },
         });
         fireEvent.change(screen.getByLabelText(/API Token Instance/i), {
-            target: { value: 'short' }, // <-- меньше 30 символов
+            target: { value: 'short' },
         });
         fireEvent.click(screen.getByRole('button', { name: /Войти/i }));
 
@@ -64,19 +60,17 @@ describe('LoginForm', () => {
             await screen.findByText(/Токен выглядит слишком коротким/i)
         ).toBeInTheDocument();
 
-        // getStateInstance не должен был вызваться
         expect(greenApi.getStateInstance).not.toHaveBeenCalled();
     });
 
     it('показывает ошибку от API при неверных данных', async () => {
-        // Мок getStateInstance, который кидает ошибку
+
         vi.mocked(greenApi.getStateInstance).mockRejectedValue(
             new Error('Неверный API токен или ID инстанса')
         );
 
         renderForm();
 
-        // Заполняем поля длинным токеном, чтобы пройти локальную валидацию
         fireEvent.change(screen.getByLabelText(/ID Instance/i), {
             target: { value: '1101' },
         });
@@ -125,10 +119,8 @@ describe('LoginForm', () => {
         });
         fireEvent.click(screen.getByRole('button', { name: /Войти/i }));
 
-        // Дождались ошибки
         expect(await screen.findByText(/Неверный API токен/i)).toBeInTheDocument();
 
-        // Меняем поле — ошибка должна исчезнуть
         fireEvent.change(screen.getByLabelText(/ID Instance/i), {
             target: { value: '1102' },
         });

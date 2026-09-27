@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getStateInstance, sendMessage } from './greenApi';
+import { getStateInstance, sendMessage, receiveNotification, deleteNotification, checkAccount } from './greenApi';
 import type { AuthCredentials } from '../types/api';
 
-// Тестовые данные
 const mockCredentials: AuthCredentials = {
     apiUrl: 'https://api.test.com',
     idInstance: '1101',
@@ -10,7 +9,6 @@ const mockCredentials: AuthCredentials = {
 };
 
 describe('getStateInstance', () => {
-    // Перед каждым тестом сбрасываем все моки
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -25,7 +23,6 @@ describe('getStateInstance', () => {
 
         expect(result.stateInstance).toBe('authorized');
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
-        // Проверяем, что URL собран правильно
         expect(globalThis.fetch).toHaveBeenCalledWith(
             'https://api.test.com/waInstance1101/getStateInstance/test-token',
             expect.objectContaining({ method: 'GET' })
@@ -66,7 +63,6 @@ describe('getStateInstance', () => {
     });
 
     it('кидает понятную ошибку при сетевом сбое (TypeError)', async () => {
-        // Именно TypeError кидает fetch, когда нет соединения
         globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
 
         await expect(getStateInstance(mockCredentials)).rejects.toThrow(
@@ -82,10 +78,8 @@ describe('getStateInstance', () => {
 
         await getStateInstance({
             ...mockCredentials,
-            apiUrl: 'https://api.test.com/', // <-- слэш в конце
+            apiUrl: 'https://api.test.com/',
         });
-
-        // Проверяем, что двойного слэша нет
         expect(globalThis.fetch).toHaveBeenCalledWith(
             'https://api.test.com/waInstance1101/getStateInstance/test-token',
             expect.anything()
@@ -118,5 +112,74 @@ describe('sendMessage', () => {
                 body: JSON.stringify({ chatId: '10000000', message: 'Привет!' }),
             })
         );
+    });
+});
+
+describe('receiveNotification', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('возвращает null, если уведомлений нет', async () => {
+        globalThis.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            text: async () => 'null',
+        } as Response);
+
+        const result = await receiveNotification(mockCredentials);
+        expect(result).toBeNull();
+    });
+
+    it('возвращает распарсенное уведомление', async () => {
+        const fakeNotification = { receiptId: 1, body: { typeWebhook: 'incomingMessageReceived' } };
+        globalThis.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            text: async () => JSON.stringify(fakeNotification),
+        } as Response);
+
+        const result = await receiveNotification(mockCredentials);
+        expect(result).toEqual(fakeNotification);
+    });
+});
+
+describe('deleteNotification', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('отправляет DELETE-запрос с правильным receiptId', async () => {
+        globalThis.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+
+        await deleteNotification(mockCredentials, 12345);
+
+        expect(globalThis.fetch).toHaveBeenCalledWith(
+            'https://api.test.com/waInstance1101/deleteNotification/test-token/12345',
+            expect.objectContaining({ method: 'DELETE' })
+        );
+    });
+
+    it('бросает ошибку при 500 (её ловит usePolling)', async () => {
+        globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 } as Response);
+
+        await expect(deleteNotification(mockCredentials, 12345)).rejects.toThrow(
+            /Ошибка сервера: 500/
+        );
+    });
+});
+
+describe('checkAccount', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('возвращает chatId по номеру телефона', async () => {
+        globalThis.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ exist: true, chatId: '10000000', fromCache: false }),
+        } as Response);
+
+        const result = await checkAccount(mockCredentials, 79999999999);
+        expect(result.chatId).toBe('10000000');
+        expect(result.exist).toBe(true);
     });
 });

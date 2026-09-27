@@ -1,4 +1,11 @@
-import type { AuthCredentials, CheckAccountResponse, GetStateResponse, ReceiveNotificationResponse, SendMessageRequest, SendMessageResponse } from '../types/api';
+import type {
+    AuthCredentials,
+    CheckAccountResponse,
+    GetStateResponse,
+    ReceiveNotificationResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+} from '../types/api';
 
 const fetchWithErrorHandling = async (url: string, options: RequestInit) => {
     try {
@@ -23,6 +30,21 @@ const fetchWithErrorHandling = async (url: string, options: RequestInit) => {
         }
         throw error;
     }
+};
+
+export const getStateInstance = async (
+    credentials: AuthCredentials
+): Promise<GetStateResponse> => {
+    const { apiUrl, idInstance, apiTokenInstance } = credentials;
+    const cleanUrl = apiUrl.replace(/\/$/, '');
+    const url = `${cleanUrl}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
+
+    const response = await fetchWithErrorHandling(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+    });
+
+    return response.json();
 };
 
 export const sendMessage = async (
@@ -54,10 +76,6 @@ export const receiveNotification = async (
         headers: { 'Accept': 'application/json' },
     });
 
-    if (!response.ok) {
-        throw new Error(`Ошибка получения уведомления: ${response.status}`);
-    }
-
     const text = await response.text();
     if (!text || text === 'null') return null;
 
@@ -72,14 +90,10 @@ export const deleteNotification = async (
     const cleanUrl = apiUrl.replace(/\/$/, '');
     const url = `${cleanUrl}/waInstance${idInstance}/deleteNotification/${apiTokenInstance}/${receiptId}`;
 
-    const response = await fetchWithErrorHandling(url, {
+    await fetchWithErrorHandling(url, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' },
     });
-
-    if (!response.ok) {
-        console.warn(`Не удалось удалить уведомление ${receiptId}`);
-    }
 };
 
 export const checkAccount = async (
@@ -97,25 +111,6 @@ export const checkAccount = async (
             'Accept': 'application/json',
         },
         body: JSON.stringify({ phoneNumber }),
-    });
-
-    if (!response.ok) {
-        throw new Error(`Ошибка проверки аккаунта: ${response.status}`);
-    }
-
-    return response.json();
-};
-
-export const getStateInstance = async (
-    credentials: AuthCredentials
-): Promise<GetStateResponse> => {
-    const { apiUrl, idInstance, apiTokenInstance } = credentials;
-    const cleanUrl = apiUrl.replace(/\/$/, '');
-    const url = `${cleanUrl}/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`;
-
-    const response = await fetchWithErrorHandling(url, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
     });
 
     return response.json();
