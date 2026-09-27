@@ -1,75 +1,69 @@
-# React + TypeScript + Vite
+# GREEN-API MAX
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-интерфейс для отправки и получения текстовых сообщений через сервис [GREEN-API](https://green-api.com/) для мессенджера MAX.
 
-Currently, two official plugins are available:
+## Демо
+![alt text](image.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![alt text](image-1.png)
 
-## React Compiler
+## Функциональность
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Авторизация по `apiUrl`, `idInstance`, `apiTokenInstance` с проверкой через `getStateInstance`
+- Создание нового чата по номеру телефона получателя
+- Отправка текстовых сообщений (`sendMessage`)
+- Получение входящих сообщений через HTTP Polling (`receiveNotification` / `deleteNotification`)
+- Автоматическое определение `chatId` по номеру телефона (`checkAccount`)
+- Сохранение истории чатов в `localStorage`
+- Удаление чатов
+- Cообщения об ошибках (401, 404, 466, ошибки сети)
+- Покрытие тестами
 
-## Expanding the ESLint configuration
+## Установка и запуск
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+1. Клонировать репозиторий
+```bash
+git clone <URL_РЕПОЗИТОРИЯ>
+cd greenApiMax
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+2. Установить зависимости
+```bash
+npm install
+```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. Запустить dev-сервер
+```bash
+npm run dev
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Приложение откроется на [http://localhost:5173](http://localhost:5173)
 
+### Как получить доступы
+
+1. Зарегистрируйтесь на [console.green-api.com](https://console.green-api.com).
+2. Создайте инстанс MAX (бесплатный тариф «Разработчик»).
+3. Скопируйте из личного кабинета:
+   - `apiUrl` (например, `https://3100.api.green-api.com`)
+   - `idInstance`
+   - `apiTokenInstance`
+4. В личном кабинете включите получение уведомлений:
+   - **«Получать уведомления о входящих сообщениях и файлах» → Да**
+   - **«Получать уведомления о сообщениях, отправленных с телефона» → Да**
+5. Введите эти данные в форму авторизации приложения.
+
+## Тестирование
+
+Запуск в watch-режиме (для разработки)
+```bash
+npm test
+```
+
+Однократный запуск (для CI)
+```bash
+npm run test:run
+```
+С покрытием
+```bash
+npm run test:coverage
 ```
